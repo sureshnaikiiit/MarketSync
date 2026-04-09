@@ -16,6 +16,7 @@ const DEFAULT_SYMBOLS = [
   'UNH.US',   // UnitedHealth
 ];
 
+
 export default function WatchList() {
   const { orderBooks, subscribe } = useTickData();
   const prevMids = useRef<Record<string, number>>({});
