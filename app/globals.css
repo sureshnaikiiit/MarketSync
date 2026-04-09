@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #09090b;
+  --foreground: #fafafa;
 }
 
 @theme inline {
@@ -12,28 +12,47 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: rgba(255,255,255,0.1); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Price flash animations ───────────────────────────────── */
 @keyframes flash-up {
-  0%   { background-color: rgba(34, 197, 94, 0.35); }
+  0%   { background-color: rgba(34, 197, 94, 0.18); }
   100% { background-color: transparent; }
 }
-
 @keyframes flash-down {
-  0%   { background-color: rgba(239, 68, 68, 0.35); }
+  0%   { background-color: rgba(239, 68, 68, 0.18); }
   100% { background-color: transparent; }
 }
+.flash-up   { animation: flash-up   700ms ease-out forwards; }
+.flash-down { animation: flash-down 700ms ease-out forwards; }
 
-.flash-up   { animation: flash-up   600ms ease-out forwards; }
-.flash-down { animation: flash-down 600ms ease-out forwards; }
+/* ── Subtle shimmer for loading state ─────────────────────── */
+@keyframes shimmer {
+  0%   { opacity: 0.4; }
+  50%  { opacity: 0.8; }
+  100% { opacity: 0.4; }
+}
+.shimmer { animation: shimmer 1.5s ease-in-out infinite; }
+
+/* ── Number ticker fade ───────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+.fade-in { animation: fade-in 150ms ease-out forwards; }
+
+/* ── Hide lightweight-charts TradingView attribution ─────── */
+.tv-lightweight-charts a[href*="tradingview"] {
+  display: none !important;
+}

@@ -86,9 +86,15 @@ export interface OrderBook {
   tickTime: number;
 }
 
+export interface PricePoint {
+  time: number;  // Unix ms
+  value: number;
+}
+
 export interface TickStreamState {
   ticks: Record<string, Tick>;
   orderBooks: Record<string, OrderBook>;
+  history: Record<string, PricePoint[]>;
   status: ConnectionStatus;
   error: string | null;
 }

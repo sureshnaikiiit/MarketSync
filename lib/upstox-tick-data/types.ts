@@ -60,8 +60,14 @@ export interface UpstoxTick {
   tickTime: number;      // ms timestamp
 }
 
+export interface PricePoint {
+  time: number;
+  value: number;
+}
+
 export interface UpstoxStreamState {
   ticks: Record<string, UpstoxTick>;
+  history: Record<string, PricePoint[]>;
   status: UpstoxConnectionStatus;
   error: string | null;
   isAuthenticated: boolean;

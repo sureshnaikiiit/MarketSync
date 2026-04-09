@@ -15,10 +15,20 @@ export default function IndiaMarketPage() {
         }
       />
 
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold">India Market</h2>
-          <p className="mt-1 text-sm text-zinc-500">NSE · Live LTP · Change · Volume via Upstox</p>
+      <div className="mx-auto max-w-6xl px-6 py-8">
+        <div className="mb-6 flex items-end justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">India Market</h2>
+            <p className="mt-1 text-sm text-zinc-500">
+              Real-time NSE data · LTP · Change · Volume via Upstox
+            </p>
+          </div>
+          <span className="text-xs text-zinc-600 font-mono">
+            {new Date().toLocaleDateString('en-IN', {
+              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+              timeZone: 'Asia/Kolkata',
+            })}
+          </span>
         </div>
 
         <IndiaWatchList />

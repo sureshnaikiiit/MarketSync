@@ -3,12 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getDecoder } from './proto';
 import type {
+  PricePoint,
   SubscriptionMode,
   UpstoxConnectionStatus,
   UpstoxFeedResponse,
   UpstoxStreamOptions,
   UpstoxTick,
 } from './types';
+
+const MAX_HISTORY = 300;
 
 function makeGuid() {
   return `ms-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -77,9 +80,10 @@ function normaliseFeed(
 export function useUpstoxStream(options: UpstoxStreamOptions = {}) {
   const { instrumentKeys = [], mode = 'full' } = options;
 
-  const [ticks, setTicks]                   = useState<Record<string, UpstoxTick>>({});
-  const [status, setStatus]                 = useState<UpstoxConnectionStatus>('idle');
-  const [error, setError]                   = useState<string | null>(null);
+  const [ticks, setTicks]                     = useState<Record<string, UpstoxTick>>({});
+  const [history, setHistory]                 = useState<Record<string, PricePoint[]>>({});
+  const [status, setStatus]                   = useState<UpstoxConnectionStatus>('idle');
+  const [error, setError]                     = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const wsRef             = useRef<WebSocket | null>(null);
@@ -180,6 +184,14 @@ export function useUpstoxStream(options: UpstoxStreamOptions = {}) {
 
           if (Object.keys(updates).length > 0) {
             setTicks(prev => ({ ...prev, ...updates }));
+            setHistory(prev => {
+              const next = { ...prev };
+              for (const [key, tick] of Object.entries(updates)) {
+                const pts = prev[key] ?? [];
+                next[key] = [...pts, { time: tick.tickTime, value: tick.ltp }].slice(-MAX_HISTORY);
+              }
+              return next;
+            });
           }
         } catch {
           // ignore malformed frames
@@ -225,5 +237,5 @@ export function useUpstoxStream(options: UpstoxStreamOptions = {}) {
     };
   }, [isAuthenticated, connect]);
 
-  return { ticks, status, error, isAuthenticated, subscribe, unsubscribe, connect };
+  return { ticks, history, status, error, isAuthenticated, subscribe, unsubscribe, connect };
 }

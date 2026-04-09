@@ -5,52 +5,50 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 const TABS = [
-  { href: '/us',     label: 'US Market'     },
-  { href: '/india',  label: 'India Market'  },
+  { href: '/us',    label: '🇺🇸 US Market'    },
+  { href: '/india', label: '🇮🇳 India Market'  },
 ];
 
-interface NavBarProps {
-  /** Optional slot rendered on the right (e.g. ConnectionBadge) */
-  actions?: ReactNode;
-}
-
-export default function NavBar({ actions }: NavBarProps) {
+export default function NavBar({ actions }: { actions?: ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-10 border-b border-white/10 bg-zinc-950/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        {/* Logo + tabs */}
+    <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-zinc-950/90 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+        {/* Logo */}
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20">
-              <span className="text-sm font-bold text-emerald-400">M</span>
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/20">
+              <span className="text-xs font-black text-white">M</span>
             </div>
-            <span className="text-lg font-semibold tracking-tight text-white">MarketSync</span>
+            <span className="text-sm font-semibold tracking-tight text-white">MarketSync</span>
           </div>
 
-          <nav className="flex items-center gap-1">
+          {/* Tabs */}
+          <nav className="flex items-center gap-0.5">
             {TABS.map(tab => {
               const active = pathname.startsWith(tab.href);
               return (
                 <Link
                   key={tab.href}
                   href={tab.href}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                  className={`relative rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-150 ${
                     active
-                      ? 'bg-white/10 text-white'
-                      : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                      ? 'text-white'
+                      : 'text-zinc-500 hover:text-zinc-300'
                   }`}
                 >
-                  {tab.label}
+                  {active && (
+                    <span className="absolute inset-0 rounded-lg bg-white/10" />
+                  )}
+                  <span className="relative">{tab.label}</span>
                 </Link>
               );
             })}
           </nav>
         </div>
 
-        {/* Right slot */}
-        {actions && <div>{actions}</div>}
+        {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
     </header>
   );

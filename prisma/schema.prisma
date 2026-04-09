@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Candle {
+  id       Int    @id @default(autoincrement())
+  market   String @db.VarChar(10)   // "us" | "india"
+  symbol   String                   // "AAPL.US" | "NSE_EQ|INE..."
+  interval String @db.VarChar(10)   // "1m" | "5m" | "1d" etc.
+  time     Int                      // Unix timestamp in seconds
+  open     Float
+  high     Float
+  low      Float
+  close    Float
+  volume   Float
+  fetchedAt DateTime @default(now()) @updatedAt
+
+  @@unique([market, symbol, interval, time])
+  @@index([market, symbol, interval, time])
+}

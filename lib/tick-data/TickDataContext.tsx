@@ -2,13 +2,14 @@
 
 import { createContext, useContext, type ReactNode } from 'react';
 import { useTickStream } from './useTickStream';
-import type { FeedType, OrderBook, Tick, TickStreamState } from './types';
+import type { FeedType, OrderBook, PricePoint, Tick, TickStreamState } from './types';
 
 interface TickDataContextValue extends TickStreamState {
   subscribe: (symbols: string[]) => void;
   unsubscribe: (symbols: string[]) => void;
   getTick: (code: string) => Tick | undefined;
   getOrderBook: (code: string) => OrderBook | undefined;
+  getHistory: (code: string) => PricePoint[];
 }
 
 const TickDataContext = createContext<TickDataContextValue | null>(null);
@@ -49,6 +50,7 @@ export function TickDataProvider({
         ...stream,
         getTick: (code) => stream.ticks[code],
         getOrderBook: (code) => stream.orderBooks[code],
+        getHistory: (code) => stream.history[code] ?? [],
       }}
     >
       {children}
