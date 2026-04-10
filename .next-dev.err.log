@@ -1735,3 +1735,91 @@ https://react.dev/link/hydration-mismatch
   188 |
   189 |   const json = await res.json();
   190 |   const list: Record<string, string>[] = json?.data?.kline_list ?? [];
+[AllTick kline] direct 1d fetch failed for AAPL.US: RangeError: init["status"] must be in the range of 200 to 599, inclusive.
+    at async fetchFromAlltick (app\api\us\kline\route.ts:186:15)
+    at async fetchCandlesWithFallback (app\api\us\kline\route.ts:234:29)
+    at async GET (app\api\us\kline\route.ts:304:15)
+  184 |
+  185 |   const url = `https://quote.alltick.co/quote-stock-b-api/kline?token=${token}&query=${qu...
+> 186 |   const res = await fetch(url);
+      |               ^
+  187 |   if (!res.ok) throw new Error(`AllTick HTTP ${res.status}`);
+  188 |
+  189 |   const json = await res.json();
+[AllTick kline] fallback 1h fetch failed for AAPL.US: Error: AllTick HTTP 429
+    at fetchFromAlltick (app\api\us\kline\route.ts:187:22)
+    at async fetchCandlesWithFallback (app\api\us\kline\route.ts:234:29)
+    at async GET (app\api\us\kline\route.ts:304:15)
+  185 |   const url = `https://quote.alltick.co/quote-stock-b-api/kline?token=${token}&query=${qu...
+  186 |   const res = await fetch(url);
+> 187 |   if (!res.ok) throw new Error(`AllTick HTTP ${res.status}`);
+      |                      ^
+  188 |
+  189 |   const json = await res.json();
+  190 |   const list: Record<string, string>[] = json?.data?.kline_list ?? [];
+[AllTick kline] fallback 15m fetch failed for AAPL.US: Error: AllTick HTTP 429
+    at fetchFromAlltick (app\api\us\kline\route.ts:187:22)
+    at async fetchCandlesWithFallback (app\api\us\kline\route.ts:234:29)
+    at async GET (app\api\us\kline\route.ts:304:15)
+  185 |   const url = `https://quote.alltick.co/quote-stock-b-api/kline?token=${token}&query=${qu...
+  186 |   const res = await fetch(url);
+> 187 |   if (!res.ok) throw new Error(`AllTick HTTP ${res.status}`);
+      |                      ^
+  188 |
+  189 |   const json = await res.json();
+  190 |   const list: Record<string, string>[] = json?.data?.kline_list ?? [];
+[AllTick kline] fallback 5m fetch failed for AAPL.US: Error: AllTick HTTP 429
+    at fetchFromAlltick (app\api\us\kline\route.ts:187:22)
+    at async fetchCandlesWithFallback (app\api\us\kline\route.ts:234:29)
+    at async GET (app\api\us\kline\route.ts:304:15)
+  185 |   const url = `https://quote.alltick.co/quote-stock-b-api/kline?token=${token}&query=${qu...
+  186 |   const res = await fetch(url);
+> 187 |   if (!res.ok) throw new Error(`AllTick HTTP ${res.status}`);
+      |                      ^
+  188 |
+  189 |   const json = await res.json();
+  190 |   const list: Record<string, string>[] = json?.data?.kline_list ?? [];
+[AllTick kline] direct 1d fetch failed for AAPL.US: Error: AllTick HTTP 429
+    at fetchFromAlltick (app\api\us\kline\route.ts:187:22)
+    at async fetchCandlesWithFallback (app\api\us\kline\route.ts:234:29)
+    at async GET (app\api\us\kline\route.ts:304:15)
+  185 |   const url = `https://quote.alltick.co/quote-stock-b-api/kline?token=${token}&query=${qu...
+  186 |   const res = await fetch(url);
+> 187 |   if (!res.ok) throw new Error(`AllTick HTTP ${res.status}`);
+      |                      ^
+  188 |
+  189 |   const json = await res.json();
+  190 |   const list: Record<string, string>[] = json?.data?.kline_list ?? [];
+[AllTick kline] fallback 1h fetch failed for AAPL.US: Error: AllTick HTTP 429
+    at fetchFromAlltick (app\api\us\kline\route.ts:187:22)
+    at async fetchCandlesWithFallback (app\api\us\kline\route.ts:234:29)
+    at async GET (app\api\us\kline\route.ts:304:15)
+  185 |   const url = `https://quote.alltick.co/quote-stock-b-api/kline?token=${token}&query=${qu...
+  186 |   const res = await fetch(url);
+> 187 |   if (!res.ok) throw new Error(`AllTick HTTP ${res.status}`);
+      |                      ^
+  188 |
+  189 |   const json = await res.json();
+  190 |   const list: Record<string, string>[] = json?.data?.kline_list ?? [];
+[AllTick kline] fallback 15m fetch failed for AAPL.US: Error: AllTick HTTP 429
+    at fetchFromAlltick (app\api\us\kline\route.ts:187:22)
+    at async fetchCandlesWithFallback (app\api\us\kline\route.ts:234:29)
+    at async GET (app\api\us\kline\route.ts:304:15)
+  185 |   const url = `https://quote.alltick.co/quote-stock-b-api/kline?token=${token}&query=${qu...
+  186 |   const res = await fetch(url);
+> 187 |   if (!res.ok) throw new Error(`AllTick HTTP ${res.status}`);
+      |                      ^
+  188 |
+  189 |   const json = await res.json();
+  190 |   const list: Record<string, string>[] = json?.data?.kline_list ?? [];
+[AllTick kline] fallback 5m fetch failed for AAPL.US: Error: AllTick HTTP 429
+    at fetchFromAlltick (app\api\us\kline\route.ts:187:22)
+    at async fetchCandlesWithFallback (app\api\us\kline\route.ts:234:29)
+    at async GET (app\api\us\kline\route.ts:304:15)
+  185 |   const url = `https://quote.alltick.co/quote-stock-b-api/kline?token=${token}&query=${qu...
+  186 |   const res = await fetch(url);
+> 187 |   if (!res.ok) throw new Error(`AllTick HTTP ${res.status}`);
+      |                      ^
+  188 |
+  189 |   const json = await res.json();
+  190 |   const list: Record<string, string>[] = json?.data?.kline_list ?? [];
