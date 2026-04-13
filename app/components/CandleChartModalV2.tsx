@@ -171,15 +171,20 @@ export default function CandleChartModalV2({
 
       const result: Candle[] = Array.isArray(json?.candles) ? json.candles : [];
 
-      // Intraday with no period returns empty outside market hours → auto-fallback to 1w
-      if (result.length === 0 && !period) {
-        setPeriod('1w');
-        return; // the period state change will re-trigger fetchCandles
+      // Intraday with no period returns empty outside market hours → fall back to daily
+      if (result.length === 0 && !period && interval !== '1d') {
+        setInterval('1d');
+        return; // interval state change will re-trigger fetchCandles
       }
 
       setCandles(result);
     } catch (err) {
       if (fetchSeq !== fetchSeqRef.current) return;
+      // If an intraday interval fails (e.g. 502 from Upstox outside hours), fall back to daily
+      if (interval !== '1d' && !period) {
+        setInterval('1d');
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Failed to load candles');
       setCandles([]);
     } finally {
