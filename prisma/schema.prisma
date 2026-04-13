@@ -10,32 +10,33 @@ datasource db {
 // ─── Candlestick cache ────────────────────────────────────────────────────────
 
 model Candle {
-  id       Int    @id @default(autoincrement())
-  market   String @db.VarChar(10)
-  symbol   String
-  interval String @db.VarChar(10)
-  time     Int
-  open     Float
-  high     Float
-  low      Float
-  close    Float
-  volume   Float
-  fetchedAt DateTime @default(now()) @updatedAt
+  market    String   @db.VarChar(10)
+  symbol    String
+  interval  String   @db.VarChar(10)
+  /// Unix timestamp in seconds — partition column for TimescaleDB hypertable
+  time      Int
+  open      Float
+  high      Float
+  low       Float
+  close     Float
+  volume    Float
+  fetchedAt DateTime @default(now())
 
-  @@unique([market, symbol, interval, time])
-  @@index([market, symbol, interval, time])
+  @@id([market, symbol, interval, time])
+  @@index([symbol, interval, time])
 }
 
 // ─── Paper-trading user ───────────────────────────────────────────────────────
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String?
   /// Available cash balance (starts at 100,000)
-  balance   Float    @default(100000)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  balance      Float    @default(100000)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   orders    Order[]
   positions Position[]

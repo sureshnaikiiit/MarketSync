@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getOrCreateDemoUser } from '@/lib/trading';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/session';
 
-export async function GET() {
-  const user = await getOrCreateDemoUser();
+export async function GET(request: NextRequest) {
+  const user = await getUserFromRequest(request);
+  if (!user) return unauthorizedResponse();
 
   // ── Positions ────────────────────────────────────────────────────────────
   const positions = await prisma.position.findMany({

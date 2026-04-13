@@ -60,7 +60,7 @@ export default function PortfolioPage() {
   const [cash,       setCash]       = useState(0);
   const [userName,   setUserName]   = useState('Demo Trader');
   const [tab,        setTab]        = useState<'positions' | 'realized'>('positions');
-  const [marketFilter, setMF]       = useState<string>('all');
+  const [marketFilter, setMF]       = useState<string>('india');
   const [loading,    setLoading]    = useState(true);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 

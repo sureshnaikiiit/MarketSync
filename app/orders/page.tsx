@@ -65,7 +65,7 @@ export default function OrdersPage() {
   const [user, setUser]         = useState<User | null>(null);
   const [orders, setOrders]     = useState<Order[]>([]);
   const [tab, setTab]           = useState<'active' | 'history'>('active');
-  const [marketFilter, setMF]   = useState<string>('all');
+  const [marketFilter, setMF]   = useState<string>('india');
   const [submitting, setSub]    = useState(false);
   const [formMsg, setFormMsg]   = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null);

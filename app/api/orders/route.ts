@@ -1,13 +1,16 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { placeOrder, getOrCreateDemoUser } from '@/lib/trading';
+import { placeOrder } from '@/lib/trading';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getUserFromRequest(request);
+    if (!user) return unauthorizedResponse();
+
     const { searchParams } = request.nextUrl;
     const status = searchParams.get('status');
     const symbol = searchParams.get('symbol');
-    const user   = await getOrCreateDemoUser();
 
     const orders = await prisma.order.findMany({
       where: {
@@ -28,6 +31,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getUserFromRequest(request);
+    if (!user) return unauthorizedResponse();
+
     const body = await request.json().catch(() => null);
     if (!body) return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
 
@@ -37,12 +43,9 @@ export async function POST(request: NextRequest) {
     if (!side)      return NextResponse.json({ error: 'side is required' },      { status: 400 });
     if (!orderType) return NextResponse.json({ error: 'orderType is required' }, { status: 400 });
     if (!quantity)  return NextResponse.json({ error: 'quantity is required' },  { status: 400 });
-    if (!price && orderType === 'LIMIT') return NextResponse.json({ error: 'price is required for LIMIT orders' }, { status: 400 });
 
-    if (!['BUY', 'SELL'].includes(side))         return NextResponse.json({ error: 'side must be BUY or SELL' },           { status: 400 });
+    if (!['BUY', 'SELL'].includes(side))          return NextResponse.json({ error: 'side must be BUY or SELL' },           { status: 400 });
     if (!['MARKET', 'LIMIT'].includes(orderType)) return NextResponse.json({ error: 'orderType must be MARKET or LIMIT' }, { status: 400 });
-
-    const user = await getOrCreateDemoUser();
 
     const order = await placeOrder({
       userId:         user.id,

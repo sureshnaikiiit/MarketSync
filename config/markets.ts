@@ -51,6 +51,32 @@ export interface MarketConfig {
 
 export const MARKETS: MarketConfig[] = [
 
+  // ── India / NSE (Upstox) ──────────────────────────────────  ← DEFAULT MARKET
+  // Note: Upstox instrument keys use the format NSE_EQ|<ISIN>
+  // The label/name here are for display only; the watchlist
+  // for India is driven by the Upstox context separately.
+  {
+    id:             'india',
+    name:           'India Market',
+    flag:           '🇮🇳',
+    provider:       'upstox',
+    currencySymbol: '₹',
+    timezone:       'Asia/Kolkata',
+    hours:          '9:15 AM – 3:30 PM IST',
+    enabled:        true,
+    klineIntervals: ['1m', '5m', '15m', '30m', '1h', '1d'],
+    instruments: [
+      { code: 'NSE_EQ|INE002A01018', label: 'RELIANCE',  name: 'Reliance Industries'   },
+      { code: 'NSE_EQ|INE467B01029', label: 'TCS',       name: 'Tata Consultancy'      },
+      { code: 'NSE_EQ|INE009A01021', label: 'INFY',      name: 'Infosys'               },
+      { code: 'NSE_EQ|INE040A01034', label: 'HDFCBANK',  name: 'HDFC Bank'             },
+      { code: 'NSE_EQ|INE090A01021', label: 'ICICIBANK', name: 'ICICI Bank'            },
+      { code: 'NSE_EQ|INE075A01022', label: 'WIPRO',     name: 'Wipro'                 },
+      { code: 'NSE_EQ|INE154A01025', label: 'ITC',       name: 'ITC Limited'           },
+      { code: 'NSE_EQ|INE062A01020', label: 'SBIN',      name: 'State Bank of India'   },
+    ],
+  },
+
   // ── United States (AllTick) ───────────────────────────────
   {
     id:             'us',
@@ -96,32 +122,6 @@ export const MARKETS: MarketConfig[] = [
       { code: '3690.HK',  label: '3690',  name: 'Meituan'         },
       { code: '2318.HK',  label: '2318',  name: 'Ping An'         },
       { code: '1810.HK',  label: '1810',  name: 'Xiaomi'          },
-    ],
-  },
-
-  // ── India / NSE (Upstox) ──────────────────────────────────
-  // Note: Upstox instrument keys use the format NSE_EQ|<ISIN>
-  // The label/name here are for display only; the watchlist
-  // for India is driven by the Upstox context separately.
-  {
-    id:             'india',
-    name:           'India Market',
-    flag:           '🇮🇳',
-    provider:       'upstox',
-    currencySymbol: '₹',
-    timezone:       'Asia/Kolkata',
-    hours:          '9:15 AM – 3:30 PM IST',
-    enabled:        true,
-    klineIntervals: ['1m', '5m', '15m', '30m', '1h', '1d'],
-    instruments: [
-      { code: 'NSE_EQ|INE002A01018', label: 'RELIANCE',  name: 'Reliance Industries'   },
-      { code: 'NSE_EQ|INE467B01029', label: 'TCS',       name: 'Tata Consultancy'      },
-      { code: 'NSE_EQ|INE009A01021', label: 'INFY',      name: 'Infosys'               },
-      { code: 'NSE_EQ|INE040A01034', label: 'HDFCBANK',  name: 'HDFC Bank'             },
-      { code: 'NSE_EQ|INE090A01021', label: 'ICICIBANK', name: 'ICICI Bank'            },
-      { code: 'NSE_EQ|INE075A01022', label: 'WIPRO',     name: 'Wipro'                 },
-      { code: 'NSE_EQ|INE154A01025', label: 'ITC',       name: 'ITC Limited'           },
-      { code: 'NSE_EQ|INE062A01020', label: 'SBIN',      name: 'State Bank of India'   },
     ],
   },
 

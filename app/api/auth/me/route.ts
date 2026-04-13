@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest, unauthorizedResponse } from '@/lib/session';
 
 export async function GET(req: NextRequest) {

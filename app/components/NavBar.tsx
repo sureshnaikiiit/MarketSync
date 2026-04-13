@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState, type ReactNode } from 'react';
 import { enabledMarkets } from '@/config/markets';
 
 const MARKET_TABS = enabledMarkets().map(m => ({
@@ -18,6 +18,27 @@ const TOOL_TABS = [
 
 export default function NavBar({ actions }: { actions?: ReactNode }) {
   const pathname = usePathname();
+  const router   = useRouter();
+  const [initials, setInitials] = useState('');
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.name) {
+          setInitials(
+            d.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  async function logout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+    router.refresh();
+  }
 
   function navLink(href: string, label: string) {
     const active = pathname.startsWith(href);
@@ -61,7 +82,24 @@ export default function NavBar({ actions }: { actions?: ReactNode }) {
           </nav>
         </div>
 
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        <div className="flex items-center gap-2">
+          {actions}
+          {/* Profile avatar link */}
+          <Link href="/profile"
+            className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
+              pathname.startsWith('/profile')
+                ? 'bg-emerald-500 text-white ring-2 ring-emerald-400/40'
+                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white border border-white/[0.08]'
+            }`}
+            title="Profile"
+          >
+            {initials || '?'}
+          </Link>
+          <button onClick={logout}
+            className="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg border border-white/[0.06] hover:border-white/[0.12] transition-colors">
+            Sign out
+          </button>
+        </div>
       </div>
     </header>
   );

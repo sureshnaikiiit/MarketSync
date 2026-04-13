@@ -169,7 +169,15 @@ export default function CandleChartModalV2({
       const json = await res.json();
       if (fetchSeq !== fetchSeqRef.current) return;
 
-      setCandles(Array.isArray(json?.candles) ? json.candles : []);
+      const result: Candle[] = Array.isArray(json?.candles) ? json.candles : [];
+
+      // Intraday with no period returns empty outside market hours → auto-fallback to 1w
+      if (result.length === 0 && !period) {
+        setPeriod('1w');
+        return; // the period state change will re-trigger fetchCandles
+      }
+
+      setCandles(result);
     } catch (err) {
       if (fetchSeq !== fetchSeqRef.current) return;
       setError(err instanceof Error ? err.message : 'Failed to load candles');
@@ -450,13 +458,13 @@ export default function CandleChartModalV2({
           <div ref={containerRef} className="h-[420px] w-full" />
 
           {loading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-zinc-950">
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-zinc-950">
               <div className="shimmer text-sm text-zinc-500">Loading candles...</div>
             </div>
           )}
 
           {!loading && error && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-zinc-950">
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-zinc-950">
               <p className="text-sm text-red-400">{error}</p>
               <button onClick={fetchCandles} className="text-xs text-zinc-400 underline hover:text-white">
                 Retry
@@ -465,7 +473,7 @@ export default function CandleChartModalV2({
           )}
 
           {!loading && !error && candles.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center bg-zinc-950">
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-zinc-950">
               <p className="text-sm text-zinc-500">No candle data available for this interval</p>
             </div>
           )}
