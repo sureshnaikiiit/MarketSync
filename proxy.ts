@@ -4,7 +4,7 @@ import { verifyToken, COOKIE_NAME } from '@/lib/auth';
 const PUBLIC = ['/login', '/signup', '/api/auth'];
 const SKIP   = ['/_next', '/favicon.ico', '/api/upstox', '/api/alerts/check'];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Always allow static assets and specific public APIs
