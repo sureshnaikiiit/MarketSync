@@ -15,7 +15,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: { default: "MarketSync", template: "%s · MarketSync" },
   description: "Real-time multi-market paper trading — India, US & Hong Kong",
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  icons: {
+    icon:             [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icon-32.png", sizes: "32x32" }, { url: "/icon-256.png", sizes: "256x256" }],
+    apple:            [{ url: "/apple-icon.png", sizes: "256x256" }],
+    shortcut:         "/icon-32.png",
+  },
 };
 
 export default function RootLayout({
