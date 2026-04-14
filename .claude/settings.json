@@ -8,7 +8,8 @@
       "Bash(npx vercel:*)",
       "Bash(npm install:*)",
       "Bash(node scripts/generate-manual-pdf.mjs)",
-      "Bash(start \"\" \"c:\\\\Users\\\\SureshBabuNaikRamava\\\\OneDrive - BILVANTIS TECHNOLOGIES PRIVATE LIMITED\\\\Desktop\\\\MarketSync\\\\MarketSync-Technical-User-Manual.pdf\")"
+      "Bash(start \"\" \"c:\\\\Users\\\\SureshBabuNaikRamava\\\\OneDrive - BILVANTIS TECHNOLOGIES PRIVATE LIMITED\\\\Desktop\\\\MarketSync\\\\MarketSync-Technical-User-Manual.pdf\")",
+      "Bash(vercel env:*)"
     ]
   }
 }
