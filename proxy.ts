@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, COOKIE_NAME } from '@/lib/auth';
 
 const PUBLIC = ['/login', '/signup', '/api/auth'];
-const SKIP   = ['/_next', '/favicon.ico', '/api/upstox', '/api/alerts/check'];
+const SKIP   = ['/_next', '/favicon.ico', '/api/upstox', '/api/alerts/check', '/api/cron'];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
