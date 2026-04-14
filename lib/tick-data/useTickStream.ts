@@ -19,10 +19,12 @@ const CMD_SUBSCRIBE      = 22002;
 const CMD_TICK_QUOTE     = 22998;
 const CMD_ORDER_BOOK     = 22999;
 
-const HEARTBEAT_INTERVAL_MS = 10_000;
-const DEFAULT_RECONNECT_MS  = 3_000;
-const DEFAULT_DEPTH         = 5;
-const MAX_HISTORY           = 300; // points per symbol
+const HEARTBEAT_INTERVAL_MS  = 10_000;
+const DEFAULT_RECONNECT_MS   = 3_000;
+const MAX_RECONNECT_MS       = 30_000; // cap backoff at 30 s
+const DEFAULT_MAX_ATTEMPTS   = 8;      // give up after 8 tries
+const DEFAULT_DEPTH          = 5;
+const MAX_HISTORY            = 300; // points per symbol
 
 function buildUrl(token: string, feedType: FeedType): string {
   const base =
@@ -46,7 +48,7 @@ export function useTickStream(options: TickStreamOptions): TickStreamState & {
     symbols = [],
     depthLevel = DEFAULT_DEPTH,
     reconnectDelay = DEFAULT_RECONNECT_MS,
-    maxReconnectAttempts = 0,
+    maxReconnectAttempts = DEFAULT_MAX_ATTEMPTS,
   } = options;
 
   const [ticks, setTicks]           = useState<Record<string, Tick>>({});
@@ -171,9 +173,11 @@ export function useTickStream(options: TickStreamOptions): TickStreamState & {
         if (!isMounted.current) return;
         const exhausted = maxReconnectAttempts > 0 && reconnectAttempts.current >= maxReconnectAttempts;
         if (exhausted) { setStatus('disconnected'); return; }
+        // Exponential backoff: 3s → 6s → 12s → 24s → 30s (capped)
+        const delay = Math.min(reconnectDelay * Math.pow(2, reconnectAttempts.current), MAX_RECONNECT_MS);
         reconnectAttempts.current += 1;
         setStatus('connecting');
-        reconnectTimer.current = setTimeout(connect, reconnectDelay);
+        reconnectTimer.current = setTimeout(connect, delay);
       };
     }
 
