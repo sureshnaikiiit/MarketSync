@@ -1,0 +1,42 @@
+name: Prefetch Candles
+
+on:
+  schedule:
+    # Runs every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  prefetch:
+    name: Prefetch candle data into TimescaleDB
+    runs-on: ubuntu-latest
+    timeout-minutes: 4  # Kill if it hangs (must finish before next run)
+
+    steps:
+      - name: Call prefetch endpoint
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.VERCEL_APP_URL }}/api/cron/prefetch")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Prefetch failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+          # Parse and display summary from JSON response
+          TOTAL=$(echo "$BODY" | grep -o '"totalInserted":[0-9]*' | grep -o '[0-9]*')
+          ERRORS=$(echo "$BODY" | grep -o '"errorCount":[0-9]*' | grep -o '[0-9]*')
+          DURATION=$(echo "$BODY" | grep -o '"durationMs":[0-9]*' | grep -o '[0-9]*')
+
+          echo "Inserted: $TOTAL rows | Errors: $ERRORS | Duration: ${DURATION}ms"
+
+          if [ "$ERRORS" != "0" ] && [ -n "$ERRORS" ]; then
+            echo "::warning::$ERRORS instrument(s) failed to fetch"
+          fi
