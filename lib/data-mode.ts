@@ -4,7 +4,7 @@ export type DataMode = 'cache-aside' | 'db-first';
 
 // In-memory cache with 30s TTL — avoids a DB hit on every chart request
 const cache: { value: DataMode; expiresAt: number } = {
-  value: 'cache-aside',
+  value: 'db-first',
   expiresAt: 0,
 };
 
