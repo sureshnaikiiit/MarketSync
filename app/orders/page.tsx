@@ -299,9 +299,16 @@ export default function OrdersPage() {
               </div>
 
               {formMsg && (
-                <p className={`text-xs rounded-lg px-3 py-2 ${formMsg.type === 'ok' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
-                  {formMsg.text}
-                </p>
+                <div className={`flex items-center gap-2.5 rounded-xl px-4 py-3 border ${
+                  formMsg.type === 'ok'
+                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                    : 'bg-red-500/15 border-red-500/40 text-red-300'
+                }`}>
+                  <span className="text-lg leading-none">
+                    {formMsg.type === 'ok' ? '✅' : '❌'}
+                  </span>
+                  <span className="text-sm font-semibold">{formMsg.text}</span>
+                </div>
               )}
 
               <button type="submit" disabled={submitting}
