@@ -12,6 +12,10 @@ const CONFIG: Record<string, { label: string; dot: string; text: string }> = {
 
 export default function UpstoxConnectionBadge() {
   const { status, error } = useUpstox();
+
+  // Button already shows "Connecting…" / "Connect" for these states — no need to duplicate
+  if (status === 'idle' || status === 'connecting') return null;
+
   const cfg = CONFIG[status];
 
   return (
