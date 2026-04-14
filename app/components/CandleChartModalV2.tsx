@@ -478,34 +478,27 @@ export default function CandleChartModalV2({
 
             {/* Combined debug panel — visible only when enabled */}
             {showDataSource && !loading && dataSource && (
-              <div className="flex items-stretch rounded-lg border border-white/[0.10] bg-white/[0.04] overflow-hidden text-[11px] font-mono">
-                {/* Left: fetched from */}
-                <div className={`flex items-center gap-1.5 px-2.5 py-1 border-r border-white/[0.08] ${
+              <div className="flex items-center rounded-md border border-white/[0.10] bg-white/[0.04] overflow-hidden text-[10px] font-mono whitespace-nowrap">
+                <div className={`flex items-center gap-1 px-2 py-1 border-r border-white/[0.08] ${
                   dataSource === 'live' ? 'text-emerald-300' : 'text-blue-300'
                 }`}>
                   <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${
                     dataSource === 'live' ? 'bg-emerald-400 animate-pulse' : 'bg-blue-400'
                   }`} />
-                  <span className="text-zinc-500">from</span>
                   <span className="font-semibold">
                     {dataSource === 'live' ? 'Live API' : dataSource === 'db-fallback' ? 'DB Fallback' : 'DB Cache'}
                   </span>
                 </div>
-                {/* Right: strategy (clickable toggle) */}
                 <button
                   onClick={toggleDataMode}
                   title="Click to switch strategy"
-                  className={`flex items-center gap-1.5 px-2.5 py-1 font-semibold transition-colors ${
+                  className={`flex items-center gap-1 px-2 py-1 font-semibold transition-colors ${
                     dataMode === 'db-first'
                       ? 'text-violet-300 hover:bg-violet-500/10'
                       : 'text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200'
                   }`}
                 >
-                  <span className="text-zinc-500">strategy</span>
-                  <span>{dataMode === 'db-first' ? 'DB-First' : 'Cache-Aside'}</span>
-                  <svg className="h-2.5 w-2.5 opacity-50" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M5 8a1 1 0 112 0 1 1 0 01-2 0zm4 0a1 1 0 112 0 1 1 0 01-2 0z"/>
-                  </svg>
+                  {dataMode === 'db-first' ? 'DB-First ⇄' : 'Cache-Aside ⇄'}
                 </button>
               </div>
             )}
