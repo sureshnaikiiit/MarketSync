@@ -136,14 +136,14 @@ export default function LoginPage() {
                 <div key={s.symbol} className="flex items-center justify-between px-3 py-0" style={{ height: '11.5%' }}>
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="font-mono font-bold text-white text-xs w-[88px] shrink-0">{s.symbol}</span>
-                    <span className="text-zinc-600 text-[11px] truncate">{s.name}</span>
+                    <span className="text-zinc-400 text-[11px] truncate">{s.name}</span>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <span className="font-mono text-xs text-white tabular-nums">₹{fmt(s.price)}</span>
                     <span className={`font-mono text-xs tabular-nums font-semibold w-14 text-right ${pos ? 'text-emerald-400' : 'text-red-400'}`}>
                       {pos ? '+' : ''}{s.pct.toFixed(2)}%
                     </span>
-                    <span className={`text-[11px] tabular-nums font-mono w-12 text-right ${pos ? 'text-emerald-700' : 'text-red-700'}`}>
+                    <span className={`text-[11px] tabular-nums font-mono w-12 text-right ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
                       {pos ? '+' : ''}{fmt(s.change)}
                     </span>
                   </div>
