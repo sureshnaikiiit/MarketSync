@@ -120,8 +120,8 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Decorative chart — compact */}
-        <div className="relative z-10 shrink-0">
+        {/* Decorative chart — slim strip */}
+        <div className="relative z-10 shrink-0" style={{ maxHeight: 56 }}>
           <DecorativeChart />
         </div>
 
