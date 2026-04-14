@@ -30,7 +30,7 @@ function httpsGet(url: string, headers: Record<string, string>): Promise<string>
 }
 
 async function fetchUpstox(instrumentKey: string): Promise<Candle[]> {
-  const token   = process.env.UPSTOX_ACCESS_TOKEN ?? '';
+  const token   = (process.env.UPSTOX_ACCESS_TOKEN ?? '').trim();
   const encoded = encodeURIComponent(instrumentKey);
   const today   = new Date().toISOString().split('T')[0];
   const from    = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -88,14 +88,14 @@ export async function GET(req: NextRequest) {
   const started = Date.now();
 
   // Intervals to pre-fetch per provider
-  // India: daily only — Upstox intraday is fetched live via the intraday endpoint
+  // Only daily candles — intraday is fetched live on demand to avoid rate limits
   const INDIA_INTERVALS  = ['1d'];
   const ALLTICK_INTERVALS: Record<string, string[]> = {
-    us: ['1d', '1h', '5m'],
-    hk: ['5m', '15m'],
+    us: ['1d'],
+    hk: ['1d'],
   };
   const ALLTICK_LIMITS: Record<string, number> = {
-    '1m': 390, '5m': 300, '15m': 200, '1h': 168, '1d': 365,
+    '1d': 365,
   };
 
   for (const market of MARKETS.filter(m => m.enabled)) {
@@ -127,8 +127,8 @@ export async function GET(req: NextRequest) {
           console.error(`[prefetch] ${market.id}/${instrument.label}/${interval} failed:`, error);
         }
 
-        // Small delay between API calls to avoid rate limiting
-        await new Promise(r => setTimeout(r, 200));
+        // Delay between API calls to respect rate limits
+        await new Promise(r => setTimeout(r, 2000));
       }
     }
   }
