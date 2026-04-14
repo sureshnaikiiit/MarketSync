@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Agent, fetch as undiciFetch } from 'undici';
 import { MARKETS } from '@/config/markets';
 import { writeCandles, type Candle } from '@/lib/timescale';
+
+// Upstox uses a cert chain not trusted by all Node.js runtimes; bypass for outbound calls only
+const upstoxAgent = new Agent({ connect: { rejectUnauthorized: false } });
 
 // ── Security: Vercel signs cron requests with this secret ────────────────────
 function isAuthorised(req: NextRequest): boolean {
@@ -10,26 +14,24 @@ function isAuthorised(req: NextRequest): boolean {
   return auth === `Bearer ${secret}`;
 }
 
-// ── Upstox fetch (India) ─────────────────────────────────────────────────────
-async function fetchUpstox(instrumentKey: string, interval: string): Promise<Candle[]> {
-  const token = process.env.UPSTOX_ACCESS_TOKEN ?? '';
+// ── Upstox fetch (India) — daily historical only ─────────────────────────────
+async function fetchUpstox(instrumentKey: string): Promise<Candle[]> {
+  const token   = process.env.UPSTOX_ACCESS_TOKEN ?? '';
   const encoded = encodeURIComponent(instrumentKey);
-  const HIST_MAP: Record<string, string> = { '1d': 'day', '1h': '60minute', '5m': '5minute' };
+  const today   = new Date().toISOString().split('T')[0];
+  const from    = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const url     = `https://api.upstox.com/v2/historical-candle/${encoded}/day/${today}/${from}`;
 
-  const unit = HIST_MAP[interval];
-  if (!unit) return [];
-
-  const today = new Date().toISOString().split('T')[0];
-  const from  = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const url   = `https://api.upstox.com/v2/historical-candle/${encoded}/${unit}/${today}/${from}`;
-
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
+  const res = await undiciFetch(url, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+    dispatcher: upstoxAgent,
+  } as Parameters<typeof undiciFetch>[1]);
   if (!res.ok) throw new Error(`Upstox ${res.status}`);
 
-  const raw = await res.json();
+  const raw = await res.json() as { status: string; data: { candles: [string, number, number, number, number, number][] } };
   if (raw.status !== 'success') throw new Error('Upstox error status');
 
-  return [...raw.data.candles].reverse().map(([ts, open, high, low, close, volume]: [string, number, number, number, number, number]) => ({
+  return [...raw.data.candles].reverse().map(([ts, open, high, low, close, volume]) => ({
     time: Math.floor(new Date(ts).getTime() / 1000),
     open, high, low, close, volume,
   }));
@@ -77,7 +79,8 @@ export async function GET(req: NextRequest) {
   const started = Date.now();
 
   // Intervals to pre-fetch per provider
-  const INDIA_INTERVALS  = ['1d', '1h', '5m'];
+  // India: daily only — Upstox intraday is fetched live via the intraday endpoint
+  const INDIA_INTERVALS  = ['1d'];
   const ALLTICK_INTERVALS: Record<string, string[]> = {
     us: ['1d', '1h', '5m'],
     hk: ['5m', '15m'],
@@ -97,7 +100,7 @@ export async function GET(req: NextRequest) {
           let candles: Candle[] = [];
 
           if (market.provider === 'upstox') {
-            candles = await fetchUpstox(instrument.code, interval);
+            candles = await fetchUpstox(instrument.code);
           } else {
             const limit = ALLTICK_LIMITS[interval] ?? 300;
             candles = await fetchAlltick(instrument.code, interval, limit);
