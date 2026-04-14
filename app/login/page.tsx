@@ -99,7 +99,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-zinc-950">
 
       {/* ══════════ LEFT — Market showcase ══════════ */}
-      <div className="hidden lg:flex lg:flex-1 relative overflow-hidden flex-col justify-between p-10"
+      <div className="hidden lg:flex lg:flex-1 relative overflow-hidden flex-col p-8 gap-4"
         style={{ background: 'linear-gradient(135deg, #0a0f1e 0%, #0d1f12 60%, #071a2e 100%)' }}
       >
         {/* Background glow blobs */}
@@ -108,51 +108,47 @@ export default function LoginPage() {
           <div className="absolute bottom-[-60px] right-[-60px] w-[350px] h-[350px] rounded-full bg-blue-600/10 blur-[100px]" />
         </div>
 
-        {/* Top: Logo + tagline */}
+        {/* Logo + tagline */}
         <div className="relative z-10">
-          <MarketSyncLogo size={40} showName className="mb-8" />
-          <h1 className="text-4xl font-bold text-white leading-tight max-w-sm">
+          <MarketSyncLogo size={36} showName className="mb-5" />
+          <h1 className="text-3xl font-bold text-white leading-tight max-w-sm">
             Trade smarter.<br />
             <span className="text-emerald-400">Track everything.</span>
           </h1>
-          <p className="mt-3 text-zinc-400 text-sm max-w-xs leading-relaxed">
+          <p className="mt-2 text-zinc-400 text-xs max-w-xs leading-relaxed">
             Real-time NSE, NYSE &amp; HKEX data · Paper trading · Portfolio tracking · Price alerts
           </p>
         </div>
 
-        {/* Middle: Decorative chart */}
-        <div className="relative z-10 my-6">
+        {/* Decorative chart — compact */}
+        <div className="relative z-10 shrink-0">
           <DecorativeChart />
         </div>
 
-        {/* Bottom: NSE stock ticker table */}
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-3">
+        {/* NSE stock ticker table — fills remaining space */}
+        <div className="relative z-10 flex flex-col flex-1 min-h-0">
+          <div className="flex items-center gap-2 mb-2">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-medium text-zinc-400 uppercase tracking-widest">NSE · Last Session</span>
+            <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">NSE · Last Session</span>
           </div>
 
-          <div className="rounded-xl border border-white/[0.07] overflow-hidden divide-y divide-white/[0.05]"
+          <div className="rounded-xl border border-white/[0.07] overflow-hidden divide-y divide-white/[0.05] flex-1"
             style={{ background: 'rgba(255,255,255,0.03)' }}
           >
-            {NSE_STOCKS.map((s, i) => {
+            {NSE_STOCKS.map(s => {
               const pos = s.pct >= 0;
               return (
-                <div
-                  key={s.symbol}
-                  className="flex items-center justify-between px-4 py-2.5"
-                  style={{ animationDelay: `${i * 80}ms` }}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="font-mono font-bold text-white text-xs w-20 shrink-0">{s.symbol}</span>
-                    <span className="text-zinc-600 text-xs truncate hidden sm:block">{s.name}</span>
+                <div key={s.symbol} className="flex items-center justify-between px-3 py-0" style={{ height: '11.5%' }}>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-mono font-bold text-white text-xs w-[88px] shrink-0">{s.symbol}</span>
+                    <span className="text-zinc-600 text-[11px] truncate">{s.name}</span>
                   </div>
-                  <div className="flex items-center gap-4 shrink-0">
+                  <div className="flex items-center gap-3 shrink-0">
                     <span className="font-mono text-xs text-white tabular-nums">₹{fmt(s.price)}</span>
-                    <span className={`font-mono text-xs tabular-nums font-semibold w-16 text-right ${pos ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <span className={`font-mono text-xs tabular-nums font-semibold w-14 text-right ${pos ? 'text-emerald-400' : 'text-red-400'}`}>
                       {pos ? '+' : ''}{s.pct.toFixed(2)}%
                     </span>
-                    <span className={`text-xs tabular-nums font-mono w-14 text-right ${pos ? 'text-emerald-600' : 'text-red-600'}`}>
+                    <span className={`text-[11px] tabular-nums font-mono w-12 text-right ${pos ? 'text-emerald-700' : 'text-red-700'}`}>
                       {pos ? '+' : ''}{fmt(s.change)}
                     </span>
                   </div>
@@ -161,7 +157,7 @@ export default function LoginPage() {
             })}
           </div>
 
-          <p className="mt-3 text-center text-zinc-700 text-xs">
+          <p className="mt-1.5 text-center text-zinc-700 text-[10px]">
             Data shown is from the last trading session
           </p>
         </div>
