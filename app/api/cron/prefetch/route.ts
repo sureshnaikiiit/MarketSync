@@ -18,7 +18,13 @@ function isAuthorised(req: NextRequest): boolean {
 function httpsGet(url: string, headers: Record<string, string>): Promise<string> {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
-    https.get({ hostname: u.hostname, path: u.pathname + u.search, headers, agent: upstoxAgent }, (res) => {
+    https.get({
+      hostname: u.hostname,
+      path: u.pathname + u.search,
+      headers,
+      agent: upstoxAgent,
+      rejectUnauthorized: false,  // belt-and-suspenders: also set on the request itself
+    }, (res) => {
       let body = '';
       res.on('data', (chunk: string) => { body += chunk; });
       res.on('end', () => {
