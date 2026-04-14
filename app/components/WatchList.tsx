@@ -48,7 +48,7 @@ function TickRow({ book, instrument, prevMid, history, currencySymbol, timezone,
       {/* Symbol */}
       <td className="px-5 py-3">
         <div className="font-mono font-bold text-white text-sm">{instrument.label}</div>
-        <div className="text-xs text-zinc-600 mt-0.5">{instrument.name}</div>
+        <div className="text-xs text-zinc-400 mt-0.5">{instrument.name}</div>
       </td>
 
       {/* Bid */}
@@ -94,7 +94,7 @@ function TickRow({ book, instrument, prevMid, history, currencySymbol, timezone,
       </td>
 
       {/* Updated */}
-      <td className="px-5 py-3 text-right text-zinc-600 text-xs font-mono">
+      <td className="px-5 py-3 text-right text-zinc-400 text-xs font-mono">
         {formatTime(book.tickTime, timezone)}
       </td>
     </tr>
@@ -162,7 +162,7 @@ export default function WatchList({ market }: Props) {
               {['Symbol', 'Best Bid', 'Best Ask', 'Mid', 'Spread', 'Chart', 'Updated'].map((h, i) => (
                 <th
                   key={h}
-                  className={`px-${i === 0 || i === 6 ? 5 : 4} py-3 text-xs font-medium uppercase tracking-widest text-zinc-600 ${
+                  className={`px-${i === 0 || i === 6 ? 5 : 4} py-3 text-xs font-medium uppercase tracking-widest text-zinc-500 ${
                     i === 0 ? 'text-left' : 'text-right'
                   }`}
                 >

@@ -46,7 +46,7 @@ function TickRow({ tick, prevLtp, history, onClick }: {
       {/* Symbol */}
       <td className="px-5 py-3">
         <div className="font-mono font-bold text-white text-sm">{label}</div>
-        <div className="text-xs text-zinc-600 mt-0.5">{name}</div>
+        <div className="text-xs text-zinc-400 mt-0.5">{name}</div>
       </td>
 
       {/* LTP */}
@@ -86,7 +86,7 @@ function TickRow({ tick, prevLtp, history, onClick }: {
       </td>
 
       {/* Updated */}
-      <td className="px-5 py-3 text-right text-zinc-600 text-xs font-mono">
+      <td className="px-5 py-3 text-right text-zinc-400 text-xs font-mono">
         {formatTime(tick.tickTime)}
       </td>
     </tr>
@@ -163,7 +163,7 @@ export default function IndiaWatchList() {
               {['Symbol', 'LTP (₹)', 'Change %', 'Change', 'Volume', 'Chart', 'Updated (IST)'].map((h, i) => (
                 <th
                   key={h}
-                  className={`px-${i === 0 || i === 6 ? 5 : 4} py-3 text-xs font-medium uppercase tracking-widest text-zinc-600 ${i === 0 ? 'text-left' : 'text-right'}`}
+                  className={`px-${i === 0 || i === 6 ? 5 : 4} py-3 text-xs font-medium uppercase tracking-widest text-zinc-500 ${i === 0 ? 'text-left' : 'text-right'}`}
                 >
                   {h}
                 </th>
