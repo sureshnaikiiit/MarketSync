@@ -171,8 +171,8 @@ export default function CandleChartModalV2({
 
       const result: Candle[] = Array.isArray(json?.candles) ? json.candles : [];
 
-      // Intraday with no period returns empty outside market hours → fall back to daily
-      if (result.length === 0 && !period && interval !== '1d') {
+      // Intraday returns empty (market closed or provider error) → fall back to daily
+      if (result.length === 0 && interval !== '1d') {
         setInterval('1d');
         return; // interval state change will re-trigger fetchCandles
       }
@@ -180,8 +180,8 @@ export default function CandleChartModalV2({
       setCandles(result);
     } catch (err) {
       if (fetchSeq !== fetchSeqRef.current) return;
-      // If an intraday interval fails (e.g. 502 from Upstox outside hours), fall back to daily
-      if (interval !== '1d' && !period) {
+      // Any intraday interval fails (e.g. 502, expired token, unsupported range) → fall back to daily
+      if (interval !== '1d') {
         setInterval('1d');
         return;
       }
