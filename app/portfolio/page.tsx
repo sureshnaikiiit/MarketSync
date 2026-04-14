@@ -226,7 +226,7 @@ export default function PortfolioPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-white/[0.06] text-xs text-zinc-500">
+                        <tr className="border-b border-white/[0.06] text-xs text-zinc-300 uppercase tracking-widest">
                           {['Symbol', 'Market', 'Qty', 'Avg Cost', 'Current Price', 'Market Value', 'Unrealized P&L', 'Return %'].map(h => (
                             <th key={h} className="px-4 py-3 text-left font-medium">{h}</th>
                           ))}
@@ -236,7 +236,7 @@ export default function PortfolioPage() {
                         {filteredPositions.map(p => (
                           <tr key={p.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
                             <td className="px-4 py-3 font-mono font-bold text-white">{p.label}</td>
-                            <td className="px-4 py-3 text-xs text-zinc-500 uppercase">{p.market}</td>
+                            <td className="px-4 py-3 text-xs text-zinc-400 uppercase">{p.market}</td>
                             <td className="px-4 py-3 font-mono text-zinc-200">{p.quantity}</td>
                             <td className="px-4 py-3 font-mono text-zinc-300">{fmt(p.avgCost, p.currencySymbol)}</td>
                             <td className="px-4 py-3 font-mono text-zinc-200">{fmt(p.currentPrice, p.currencySymbol)}</td>
@@ -265,7 +265,7 @@ export default function PortfolioPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-white/[0.06] text-xs text-zinc-500">
+                        <tr className="border-b border-white/[0.06] text-xs text-zinc-300 uppercase tracking-widest">
                           {['Date', 'Symbol', 'Market', 'Qty Sold', 'Avg Cost', 'Sale Price', 'Realized P&L'].map(h => (
                             <th key={h} className="px-4 py-3 text-left font-medium">{h}</th>
                           ))}
