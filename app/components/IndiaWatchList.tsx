@@ -163,7 +163,7 @@ export default function IndiaWatchList() {
               {['Symbol', 'LTP (₹)', 'Change %', 'Change', 'Volume', 'Chart', 'Updated (IST)'].map((h, i) => (
                 <th
                   key={h}
-                  className={`px-${i === 0 || i === 6 ? 5 : 4} py-3 text-xs font-medium uppercase tracking-widest text-zinc-500 ${i === 0 ? 'text-left' : 'text-right'}`}
+                  className={`px-${i === 0 || i === 6 ? 5 : 4} py-3 text-xs font-medium uppercase tracking-widest text-zinc-300 ${i === 0 ? 'text-left' : 'text-right'}`}
                 >
                   {h}
                 </th>

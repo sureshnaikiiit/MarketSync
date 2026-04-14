@@ -162,7 +162,7 @@ export default function WatchList({ market }: Props) {
               {['Symbol', 'Best Bid', 'Best Ask', 'Mid', 'Spread', 'Chart', 'Updated'].map((h, i) => (
                 <th
                   key={h}
-                  className={`px-${i === 0 || i === 6 ? 5 : 4} py-3 text-xs font-medium uppercase tracking-widest text-zinc-500 ${
+                  className={`px-${i === 0 || i === 6 ? 5 : 4} py-3 text-xs font-medium uppercase tracking-widest text-zinc-300 ${
                     i === 0 ? 'text-left' : 'text-right'
                   }`}
                 >
