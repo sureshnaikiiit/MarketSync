@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest, unauthorizedResponse } from '@/lib/session';
 import { readCandles } from '@/lib/timescale';
+import { MARKETS } from '@/config/markets';
 
 // Reuse the same TLS-bypass agent as india-preview
 const upstoxAgent = new https.Agent({ rejectUnauthorized: false });
@@ -57,17 +58,28 @@ export async function GET(request: NextRequest) {
     orderBy: { updatedAt: 'desc' },
   });
 
-  // Batch-fetch live LTPs for all India positions in one Upstox call
-  const indiaSymbols = positions
-    .filter(p => p.market === 'india')
-    .map(p => p.symbol);
-  const indiaLtps = await fetchUpstoxLtps(indiaSymbols);
+  // Batch-fetch live LTPs for ALL India instruments (covers positions
+  // stored with either full instrument key or short label as symbol)
+  const indiaMarket = MARKETS.find(m => m.id === 'india');
+  const allIndiaKeys = indiaMarket?.instruments.map(i => i.code) ?? [];
+  const indiaLtps = await fetchUpstoxLtps(allIndiaKeys);
+
+  // Build a label→price map so we can match positions stored with short labels
+  const labelToLtp: Record<string, number> = {};
+  if (indiaMarket) {
+    for (const inst of indiaMarket.instruments) {
+      const ltp = indiaLtps[inst.code];
+      if (ltp) labelToLtp[inst.label] = ltp;
+    }
+  }
 
   // For each position, use live LTP (India) or latest candle close (US/HK)
   const enriched = await Promise.all(positions.map(async (pos) => {
     let currentPrice = pos.avgCost;
-    if (pos.market === 'india' && indiaLtps[pos.symbol]) {
-      currentPrice = indiaLtps[pos.symbol];
+    if (pos.market === 'india') {
+      // Try full instrument key first, fall back to label match
+      const ltp = indiaLtps[pos.symbol] ?? labelToLtp[pos.label] ?? labelToLtp[pos.symbol];
+      if (ltp) currentPrice = ltp;
     } else {
       try {
         const candles = await readCandles(pos.market, pos.symbol, '1d', 1);
