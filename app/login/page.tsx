@@ -1,20 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import MarketSyncLogo from '@/app/components/MarketSyncLogo';
+import type { PreviewStock } from '@/app/api/public/india-preview/route';
 
-/* ── Static NSE snapshot (last session data) ── */
-const NSE_STOCKS = [
-  { symbol: 'RELIANCE', name: 'Reliance Industries',   price: 1315.10, change: -35.10, pct: -2.60 },
-  { symbol: 'TCS',      name: 'Tata Consultancy Svcs', price: 2472.60, change: -51.70, pct: -2.05 },
-  { symbol: 'INFY',     name: 'Infosys',               price: 1276.80, change: -15.70, pct: -1.21 },
-  { symbol: 'HDFCBANK', name: 'HDFC Bank',             price:  794.70, change: -15.60, pct: -1.93 },
-  { symbol: 'ICICIBANK',name: 'ICICI Bank',            price: 1351.10, change: +29.20, pct: +2.21 },
-  { symbol: 'WIPRO',    name: 'Wipro',                 price:  202.97, change:  -1.91, pct: -0.93 },
-  { symbol: 'ITC',      name: 'ITC Limited',           price:  440.50, change:  +3.70, pct: +0.85 },
-  { symbol: 'SBIN',     name: 'State Bank of India',   price:  820.30, change: -12.10, pct: -1.45 },
+const FALLBACK_STOCKS: PreviewStock[] = [
+  { symbol: 'RELIANCE',  name: 'Reliance Industries', price: 0, change: 0, pct: 0 },
+  { symbol: 'TCS',       name: 'Tata Consultancy',    price: 0, change: 0, pct: 0 },
+  { symbol: 'INFY',      name: 'Infosys',             price: 0, change: 0, pct: 0 },
+  { symbol: 'HDFCBANK',  name: 'HDFC Bank',           price: 0, change: 0, pct: 0 },
+  { symbol: 'ICICIBANK', name: 'ICICI Bank',          price: 0, change: 0, pct: 0 },
+  { symbol: 'WIPRO',     name: 'Wipro',               price: 0, change: 0, pct: 0 },
+  { symbol: 'ITC',       name: 'ITC Limited',         price: 0, change: 0, pct: 0 },
+  { symbol: 'SBIN',      name: 'State Bank of India', price: 0, change: 0, pct: 0 },
 ];
 
 function fmt(n: number) {
@@ -76,6 +76,17 @@ export default function LoginPage() {
   const [error,    setError]    = useState('');
   const [loading,  setLoading]  = useState(false);
   const [success,  setSuccess]  = useState(false);
+  const [stocks,   setStocks]   = useState<PreviewStock[]>(FALLBACK_STOCKS);
+  const [dataLive, setDataLive] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/public/india-preview')
+      .then(r => r.json())
+      .then((d: { stocks: PreviewStock[] }) => {
+        if (d.stocks?.length > 0) { setStocks(d.stocks); setDataLive(true); }
+      })
+      .catch(() => { /* keep fallback */ });
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -143,15 +154,18 @@ export default function LoginPage() {
         {/* NSE stock ticker table — fills remaining space */}
         <div className="relative z-10 flex flex-col flex-1 min-h-0">
           <div className="flex items-center gap-2 mb-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">NSE · Last Session</span>
+            <span className={`h-1.5 w-1.5 rounded-full ${dataLive ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
+            <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
+              NSE · {dataLive ? 'Live Data' : 'Last Session'}
+            </span>
           </div>
 
           <div className="rounded-xl border border-white/[0.07] overflow-hidden divide-y divide-white/[0.05] flex-1"
             style={{ background: 'rgba(255,255,255,0.03)' }}
           >
-            {NSE_STOCKS.map(s => {
-              const pos = s.pct >= 0;
+            {stocks.map(s => {
+              const pos     = s.pct >= 0;
+              const hasData = s.price > 0;
               return (
                 <div key={s.symbol} className="flex items-center justify-between px-3 py-0" style={{ height: '11.5%' }}>
                   <div className="flex items-center gap-2 min-w-0">
@@ -159,13 +173,19 @@ export default function LoginPage() {
                     <span className="text-zinc-400 text-[11px] truncate">{s.name}</span>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className="font-mono text-xs text-white tabular-nums">₹{fmt(s.price)}</span>
-                    <span className={`font-mono text-xs tabular-nums font-semibold w-14 text-right ${pos ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {pos ? '+' : ''}{s.pct.toFixed(2)}%
-                    </span>
-                    <span className={`text-[11px] tabular-nums font-mono w-12 text-right ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {pos ? '+' : ''}{fmt(s.change)}
-                    </span>
+                    {hasData ? (
+                      <>
+                        <span className="font-mono text-xs text-white tabular-nums">₹{fmt(s.price)}</span>
+                        <span className={`font-mono text-xs tabular-nums font-semibold w-14 text-right ${pos ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {pos ? '+' : ''}{s.pct.toFixed(2)}%
+                        </span>
+                        <span className={`text-[11px] tabular-nums font-mono w-12 text-right ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
+                          {pos ? '+' : ''}{fmt(s.change)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-zinc-700 text-[11px] font-mono">—</span>
+                    )}
                   </div>
                 </div>
               );
@@ -173,7 +193,7 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-1.5 text-center text-zinc-700 text-[10px]">
-            Data shown is from the last trading session
+            {dataLive ? 'Updated every 5 minutes via cron' : 'Data shown is from the last trading session'}
           </p>
         </div>
       </div>
