@@ -78,15 +78,17 @@ export default function LoginPage() {
   const [success,  setSuccess]  = useState(false);
   const [stocks,    setStocks]    = useState<PreviewStock[]>(FALLBACK_STOCKS);
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
+  const [isLive,    setIsLive]    = useState(false);
 
   useEffect(() => {
     function loadPreview() {
       fetch('/api/public/india-preview')
         .then(r => r.json())
-        .then((d: { stocks: PreviewStock[]; fetchedAt?: string }) => {
+        .then((d: { stocks: PreviewStock[]; fetchedAt?: string; isLive?: boolean }) => {
           if (d.stocks?.length > 0) {
             setStocks(d.stocks);
             if (d.fetchedAt) setFetchedAt(d.fetchedAt);
+            setIsLive(d.isLive ?? false);
           }
         })
         .catch(() => { /* keep fallback */ });
@@ -171,9 +173,13 @@ export default function LoginPage() {
         {/* NSE stock ticker table — fills remaining space */}
         <div className="relative z-10 flex flex-col flex-1 min-h-0">
           <div className="flex items-center gap-2 mb-2">
-            <span className={`h-1.5 w-1.5 rounded-full ${fetchedLabel ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
+            <span className={`h-1.5 w-1.5 rounded-full ${isLive ? 'bg-emerald-400 animate-pulse' : fetchedLabel ? 'bg-zinc-500' : 'bg-zinc-600'}`} />
             <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
-              NSE · {fetchedLabel ? `Updated ${fetchedLabel}` : 'Loading…'}
+              {!fetchedLabel
+                ? 'NSE · Loading…'
+                : isLive
+                  ? `NSE · Live · ${fetchedLabel}`
+                  : `NSE · Prev close · ${fetchedLabel}`}
             </span>
           </div>
 
@@ -210,7 +216,11 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-1.5 text-center text-zinc-700 text-[10px]">
-            {fetchedLabel ? 'Refreshed every 5 minutes' : 'Fetching latest session data…'}
+            {!fetchedLabel
+              ? 'Fetching latest session data…'
+              : isLive
+                ? 'Live prices · auto-refreshes every 5 min'
+                : 'Previous session close · updates after market opens'}
           </p>
         </div>
       </div>
