@@ -41,9 +41,7 @@ function TickRow({ book, instrument, prevMid, history, currencySymbol, timezone,
   return (
     <tr
       onClick={onClick}
-      className={`group border-b border-white/[0.04] transition-colors cursor-pointer hover:bg-white/[0.03] ${
-        up ? 'flash-up' : down ? 'flash-down' : ''
-      }`}
+      className="group border-b border-white/[0.04] transition-colors cursor-pointer hover:bg-white/[0.03]"
     >
       {/* Symbol */}
       <td className="px-5 py-3">
