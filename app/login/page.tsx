@@ -92,7 +92,11 @@ export default function LoginPage() {
   }, []);
 
   const fetchedLabel = fetchedAt
-    ? new Date(fetchedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata', hour12: false }) + ' IST'
+    ? new Date(fetchedAt).toLocaleString('en-IN', {
+        day: '2-digit', month: 'short',
+        hour: '2-digit', minute: '2-digit',
+        timeZone: 'Asia/Kolkata', hour12: false,
+      }).replace(',', '') + ' IST'
     : null;
 
   async function handleSubmit(e: React.FormEvent) {

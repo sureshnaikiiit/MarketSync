@@ -72,7 +72,10 @@ export async function writeCandles(
             unnest($4::integer[]), unnest($5::float8[]), unnest($6::float8[]),
             unnest($7::float8[]), unnest($8::float8[]), unnest($9::float8[]),
             NOW()
-     ON CONFLICT (market, symbol, interval, time) DO NOTHING`,
+     ON CONFLICT (market, symbol, interval, time) DO UPDATE
+       SET open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low,
+           close = EXCLUDED.close, volume = EXCLUDED.volume,
+           "fetchedAt" = EXCLUDED."fetchedAt"`,
     [market, symbol, interval, times, opens, highs, lows, closes, volumes],
   );
   return rowCount ?? 0;
