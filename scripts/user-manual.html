@@ -324,7 +324,7 @@
     </div>
     <div class="toc-sub">
       <div class="toc-section"><a href="#s2-1"><span class="toc-title">2.1 High-Level Architecture</span><span class="toc-page-num">4</span></a></div>
-      <div class="toc-section"><a href="#s2-2"><span class="toc-title">2.2 Database Architecture (Dual-DB)</span><span class="toc-page-num">4</span></a></div>
+      <div class="toc-section"><a href="#s2-2"><span class="toc-title">2.2 Database Architecture (Single TimescaleDB)</span><span class="toc-page-num">4</span></a></div>
       <div class="toc-section"><a href="#s2-3"><span class="toc-title">2.3 Request Flow Diagram</span><span class="toc-page-num">5</span></a></div>
       <div class="toc-section"><a href="#s2-4"><span class="toc-title">2.4 Project File Structure</span><span class="toc-page-num">5</span></a></div>
     </div>
@@ -472,7 +472,7 @@
     <strong>MarketSync</strong> is a full-stack, real-time multi-market trading dashboard built on Next.js 16. It lets registered users monitor live price data from three major global exchanges — India (NSE), United States (NYSE / NASDAQ), and Hong Kong (HKEX) — and execute paper trades (simulated orders) with a virtual starting balance of <strong>₹1,00,000</strong>.
   </p>
   <p>
-    All price data is streamed over WebSocket connections. Candlestick (OHLCV) data is persisted in a dedicated TimescaleDB time-series database for fast historical queries, while transactional user data (accounts, orders, positions, alerts) is stored in a Prisma Postgres managed PostgreSQL database.
+    All price data is streamed over WebSocket connections directly in the browser. Candlestick (OHLCV) data and all transactional user data (accounts, orders, positions, alerts) are persisted in a single <strong>TimescaleDB</strong> database on TigerData Cloud — accessed via Prisma ORM for app tables and raw SQL for the candle hypertable.
   </p>
 
   <div class="callout success no-break">
@@ -555,9 +555,9 @@
       <tr><td>UI Library</td><td>React</td><td>19.2.4</td><td>Component rendering</td></tr>
       <tr><td>Styling</td><td>Tailwind CSS</td><td>4.x</td><td>Utility-first CSS</td></tr>
       <tr><td>Charts</td><td>lightweight-charts</td><td>5.1.0</td><td>Candlestick &amp; line charts</td></tr>
-      <tr><td>ORM</td><td>Prisma + PrismaPg adapter</td><td>7.7.0</td><td>Relational DB queries</td></tr>
-      <tr><td>Relational DB</td><td>Prisma Postgres (cloud)</td><td>PostgreSQL 16</td><td>Users, Orders, Positions</td></tr>
-      <tr><td>Time-series DB</td><td>TimescaleDB (TigerData cloud)</td><td>PostgreSQL extension</td><td>Candle OHLCV storage</td></tr>
+      <tr><td>ORM</td><td>Prisma + PrismaPg adapter</td><td>7.7.0</td><td>Relational DB queries (app tables)</td></tr>
+      <tr><td>Database</td><td>TimescaleDB (TigerData cloud)</td><td>PostgreSQL 16 + extension</td><td>All data: Users, Orders, Positions, Candles</td></tr>
+      <tr><td>Cron / Prefetch</td><td>GitHub Actions (scheduled workflow)</td><td>—</td><td>Pre-fetch daily candles every 5 min</td></tr>
       <tr><td>Auth</td><td>Jose (JWT) + bcryptjs</td><td>—</td><td>Token-based sessions</td></tr>
       <tr><td>Market Data (India)</td><td>Upstox API (WebSocket + REST)</td><td>v2</td><td>NSE live &amp; historical data</td></tr>
       <tr><td>Market Data (US/HK)</td><td>AllTick API (WebSocket + REST)</td><td>—</td><td>NYSE/NASDAQ/HKEX data</td></tr>
@@ -601,33 +601,32 @@
     </div>
     <div class="arch-card database">
       <div class="arch-icon">🗄️</div>
-      <h4>Databases</h4>
+      <h4>Database (Single)</h4>
       <ul>
-        <li><strong>Prisma Postgres</strong> (db.prisma.io)</li>
-        <li>→ Users, Orders, Positions, Alerts, PnL</li>
         <li><strong>TimescaleDB</strong> (TigerData cloud)</li>
-        <li>→ Candle OHLCV time-series</li>
+        <li>→ Users, Orders, Positions, Alerts, PnL</li>
+        <li>→ Candle OHLCV hypertable</li>
+        <li>App tables via Prisma ORM</li>
+        <li>Candles via raw SQL (<code>pg</code> Pool)</li>
       </ul>
     </div>
   </div>
 
-  <h3 id="s2-2">2.2 Database Architecture (Dual-DB)</h3>
-  <p>MarketSync uses a <strong>split database strategy</strong> for optimal performance:</p>
+  <h3 id="s2-2">2.2 Database Architecture (Single-DB)</h3>
+  <p>MarketSync uses a <strong>single TimescaleDB instance</strong> on TigerData Cloud for all data:</p>
   <table>
     <thead>
-      <tr><th>Database</th><th>Provider</th><th>Stores</th><th>Access Method</th></tr>
+      <tr><th>Table Group</th><th>Tables</th><th>Access Method</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td><strong>Prisma Postgres</strong></td>
-        <td>Prisma Cloud (db.prisma.io)</td>
-        <td>User, Order, Position, PnlEntry, PriceAlert</td>
-        <td>Prisma ORM (<code>@prisma/client</code>)</td>
+        <td><strong>App tables</strong></td>
+        <td>User, Order, Position, PnlEntry, PriceAlert, Setting</td>
+        <td>Prisma ORM (<code>@prisma/client</code> via <code>@prisma/adapter-pg</code>)</td>
       </tr>
       <tr>
-        <td><strong>TimescaleDB</strong></td>
-        <td>TigerData Cloud</td>
-        <td>Candle (market, symbol, interval, time, open, high, low, close, volume)</td>
+        <td><strong>Candle hypertable</strong></td>
+        <td>Candle (market, symbol, interval, time, OHLCV, fetchedAt)</td>
         <td>Raw SQL via <code>pg</code> Pool (<code>lib/timescale.ts</code>)</td>
       </tr>
     </tbody>
@@ -635,8 +634,8 @@
   <div class="callout info no-break">
     <div class="callout-icon">ℹ️</div>
     <div class="callout-body">
-      <strong>Why Two Databases?</strong>
-      <p>Prisma Postgres does not support the TimescaleDB extension. TimescaleDB is purpose-built for time-series data with automatic hypertable partitioning (30-day chunks), columnar compression, and fast range queries — ideal for OHLCV candle storage and retrieval.</p>
+      <strong>Why TimescaleDB for Everything?</strong>
+      <p>TimescaleDB extends PostgreSQL with automatic hypertable partitioning (30-day chunks), columnar compression, and fast time-range queries — ideal for OHLCV candle storage. Prisma's <code>@prisma/adapter-pg</code> allows the ORM to connect directly to the same instance, eliminating the need for a separate Prisma Postgres database.</p>
     </div>
   </div>
 
@@ -661,18 +660,23 @@
                     │
                     ├─ Read JWT from cookie → verify → extract userId
                     │
-                    ├─ Trading operations  →  <span class="flow-db">Prisma Postgres</span>
+                    ├─ Trading operations  →  <span class="flow-db">TimescaleDB (Prisma ORM)</span>
                     │    User | Order | Position | PnlEntry | PriceAlert
                     │
-                    └─ Candle data  →  <span class="flow-db">TimescaleDB</span>
+                    └─ Candle data  →  <span class="flow-db">TimescaleDB (pg Pool)</span>
                          getNewestFetchedAt()  (cache freshness check)
                          readCandles()         (read from hypertable)
-                         writeCandles()        (bulk INSERT via unnest())
+                         writeCandles()        (bulk INSERT/UPDATE via unnest())
                          │
                          ├─ Cache HIT + fresh  →  return DB candles
                          └─ Cache MISS / stale →  fetch Upstox / AllTick
                                                    →  writeCandles() to cache
                                                    →  return live candles
+
+GitHub Actions cron  →  GET /api/cron/prefetch  (every 5 min)
+                         Prefetches daily candles for all instruments
+                         Upstox (India · 1d) + AllTick (US · 1d, HK · 1d)
+                         →  writeCandles() ON CONFLICT DO UPDATE
   </div>
 
   <h3 id="s2-4">2.4 Project File Structure</h3>
@@ -693,7 +697,9 @@ MarketSync/
 │   │   ├── portfolio/route.ts       <span class="comment"># GET portfolio summary</span>
 │   │   ├── profile/route.ts         <span class="comment"># GET/PATCH user profile</span>
 │   │   ├── india/kline/route.ts     <span class="comment"># GET India candles (Upstox)</span>
-│   │   └── us/kline/route.ts        <span class="comment"># GET US/HK candles (AllTick)</span>
+│   │   ├── us/kline/route.ts        <span class="comment"># GET US/HK candles (AllTick)</span>
+│   │   ├── cron/prefetch/route.ts   <span class="comment"># GET — prefetch daily candles (cron)</span>
+│   │   └── public/india-preview/   <span class="comment"># GET — login page live NSE preview (no auth)</span>
 │   ├── components/
 │   │   ├── NavBar.tsx               <span class="comment"># Top navigation bar</span>
 │   │   ├── WatchList.tsx            <span class="comment"># US/HK live price table</span>
@@ -723,9 +729,13 @@ MarketSync/
 │   ├── schema.prisma                <span class="comment"># Prisma schema</span>
 │   └── migrations/                  <span class="comment"># DB migrations</span>
 ├── scripts/
-│   └── init-timescale.sql           <span class="comment"># TimescaleDB setup SQL</span>
+│   ├── init-timescale.sql           <span class="comment"># TimescaleDB hypertable setup</span>
+│   └── setup-timescaledb.sql        <span class="comment"># App table DDL (run once)</span>
+├── .github/
+│   └── workflows/
+│       └── prefetch-candles.yml     <span class="comment"># GitHub Actions cron (every 5 min)</span>
 ├── proxy.ts                         <span class="comment"># Auth middleware</span>
-└── .env                             <span class="comment"># Environment variables</span>
+└── .env.local                       <span class="comment"># Environment variables (gitignored)</span>
   </pre>
 </div>
 
@@ -753,52 +763,48 @@ MarketSync/
   </table>
 
   <h3 id="s3-2">3.2 Environment Variables</h3>
-  <p>Create a <code>.env</code> file in the project root with the following variables:</p>
+  <p>Create a <code>.env.local</code> file in the project root (gitignored) with the following variables:</p>
   <table class="env-table">
     <thead><tr><th>Variable</th><th>Required</th><th>Description</th></tr></thead>
     <tbody>
-      <tr><td><code>DATABASE_URL</code></td><td><span class="badge badge-red">Required</span></td><td>Prisma Postgres connection string (pooled)</td></tr>
-      <tr><td><code>DIRECT_DATABASE_URL</code></td><td><span class="badge badge-red">Required</span></td><td>Prisma Postgres direct connection (for migrations)</td></tr>
+      <tr><td><code>DATABASE_URL</code></td><td><span class="badge badge-red">Required</span></td><td>TimescaleDB connection string — used for both Prisma ORM and candle pg Pool</td></tr>
       <tr><td><code>JWT_SECRET</code></td><td><span class="badge badge-red">Required</span></td><td>Secret key for JWT signing (min 32 chars)</td></tr>
-      <tr><td><code>TIMESCALE_URL</code></td><td><span class="badge badge-orange">Recommended</span></td><td>TimescaleDB connection string (candle caching)</td></tr>
-      <tr><td><code>UPSTOX_ACCESS_TOKEN</code></td><td><span class="badge badge-orange">For India</span></td><td>Bearer token from Upstox OAuth flow</td></tr>
-      <tr><td><code>NEXT_PUBLIC_ALLTICK_TOKEN</code></td><td><span class="badge badge-orange">For US/HK</span></td><td>AllTick API token (exposed to client)</td></tr>
+      <tr><td><code>CRON_SECRET</code></td><td><span class="badge badge-red">Required</span></td><td>Bearer token for GitHub Actions → <code>/api/cron/prefetch</code> auth</td></tr>
+      <tr><td><code>UPSTOX_ACCESS_TOKEN</code></td><td><span class="badge badge-orange">For India</span></td><td>Bearer token from Upstox OAuth flow (expires daily)</td></tr>
+      <tr><td><code>NODE_TLS_REJECT_UNAUTHORIZED</code></td><td><span class="badge badge-orange">For India</span></td><td>Set to <code>0</code> to bypass Upstox TLS certificate issue</td></tr>
+      <tr><td><code>NEXT_PUBLIC_ALLTICK_TOKEN</code></td><td><span class="badge badge-orange">For US/HK</span></td><td>AllTick API token (exposed to client for WebSocket)</td></tr>
     </tbody>
   </table>
 
   <pre>
-<span class="comment"># .env example</span>
-DATABASE_URL=<span class="string">"postgres://user:pass@db.prisma.io:5432/postgres?sslmode=require"</span>
-DIRECT_DATABASE_URL=<span class="string">"postgres://user:pass@db.prisma.io:5432/postgres?sslmode=require"</span>
+<span class="comment"># .env.local example</span>
+DATABASE_URL=<span class="string">"postgres://user:pass@your-timescale-host:5432/dbname?sslmode=require"</span>
 JWT_SECRET=<span class="string">"your-long-random-secret-key-here-2026"</span>
-TIMESCALE_URL=<span class="string">"postgres://user:pass@your-timescale-host:5432/dbname?sslmode=require"</span>
+CRON_SECRET=<span class="string">"your-cron-bearer-secret"</span>
 UPSTOX_ACCESS_TOKEN=<span class="string">"your-upstox-bearer-token"</span>
+NODE_TLS_REJECT_UNAUTHORIZED=<span class="string">"0"</span>
 NEXT_PUBLIC_ALLTICK_TOKEN=<span class="string">"your-alltick-token"</span>
   </pre>
 
   <h3 id="s3-3">3.3 Database Setup</h3>
-  <h4>Prisma Postgres (Relational Data)</h4>
+  <p>A single TimescaleDB instance on TigerData Cloud holds all data. Setup steps:</p>
   <ol class="step-list">
-    <li>Create a project at <strong>prisma.io</strong> and copy the connection strings.</li>
-    <li>Add <code>DATABASE_URL</code> and <code>DIRECT_DATABASE_URL</code> to <code>.env</code>.</li>
-    <li>Run migrations: <code>npx prisma migrate deploy</code></li>
+    <li>Create a TimescaleDB service at <strong>tigerdata.com</strong> (or Timescale Cloud).</li>
+    <li>Copy the PostgreSQL connection string to <code>DATABASE_URL</code> in <code>.env.local</code>.</li>
+    <li>Create the Candle hypertable:
+      <code>psql "$DATABASE_URL" -f scripts/init-timescale.sql</code>
+    </li>
+    <li>Create app tables (User, Order, Position, etc.) by running the DDL:
+      <code>psql "$DATABASE_URL" -f scripts/setup-timescaledb.sql</code>
+    </li>
     <li>Generate the Prisma client: <code>npx prisma generate</code></li>
   </ol>
 
-  <h4>TimescaleDB (Candle Data)</h4>
-  <ol class="step-list">
-    <li>Create a TimescaleDB instance at <strong>tigerdata.com</strong> (or Timescale Cloud).</li>
-    <li>Copy the PostgreSQL connection string to <code>TIMESCALE_URL</code> in <code>.env</code>.</li>
-    <li>Initialize the Candle hypertable by running the provided SQL script:<br>
-      <code>psql "$TIMESCALE_URL" -f scripts/init-timescale.sql</code>
-    </li>
-  </ol>
-
-  <div class="callout warning no-break">
-    <div class="callout-icon">⚠️</div>
+  <div class="callout info no-break">
+    <div class="callout-icon">ℹ️</div>
     <div class="callout-body">
-      <strong>Candle Caching is Optional</strong>
-      <p>If <code>TIMESCALE_URL</code> is empty, the app still works — it will fetch candles from Upstox / AllTick on every request without caching. Set <code>TIMESCALE_URL</code> for production to avoid rate limits and improve chart load times.</p>
+      <strong>Do Not Use prisma migrate deploy</strong>
+      <p>Because the Candle hypertable is created outside Prisma, running <code>prisma db push</code> or <code>prisma migrate deploy</code> on a non-empty TimescaleDB would attempt to drop and recreate tables. Use the provided SQL scripts instead.</p>
     </div>
   </div>
 
@@ -807,11 +813,8 @@ NEXT_PUBLIC_ALLTICK_TOKEN=<span class="string">"your-alltick-token"</span>
 <span class="comment"># Install dependencies</span>
 npm install
 
-<span class="comment"># Generate Prisma client</span>
+<span class="comment"># Generate Prisma client (must run before build)</span>
 npx prisma generate
-
-<span class="comment"># Run database migrations</span>
-npx prisma migrate deploy
 
 <span class="comment"># Start development server (Turbopack)</span>
 npm run dev
@@ -895,6 +898,8 @@ npm start
       <tr><td><code>/api/auth/*</code></td><td>Public</td><td>Auth endpoints (login, signup, logout, me)</td></tr>
       <tr><td><code>/api/upstox/*</code></td><td>Public</td><td>Upstox OAuth callback + status</td></tr>
       <tr><td><code>/api/alerts/check</code></td><td>Public</td><td>Background alert trigger endpoint</td></tr>
+      <tr><td><code>/api/cron/*</code></td><td>Public (Bearer)</td><td>Cron prefetch — validated by <code>CRON_SECRET</code> header, not JWT cookie</td></tr>
+      <tr><td><code>/api/public/*</code></td><td>Public</td><td>Unauthenticated data endpoints (e.g., login page NSE preview)</td></tr>
       <tr><td><code>/_next/*</code>, <code>/favicon.ico</code></td><td>Public</td><td>Static assets</td></tr>
       <tr><td>All other routes</td><td><span class="badge badge-red">Protected</span></td><td>Requires valid <code>ms_token</code> cookie; missing/expired → redirect to <code>/login</code></td></tr>
     </tbody>
@@ -929,14 +934,35 @@ npm start
     </tbody>
   </table>
 
-  <h4>Upstox WebSocket Setup</h4>
+  <h4>Upstox WebSocket Data Flow</h4>
+  <p>The India watchlist uses a persistent WebSocket connection running entirely in the browser. Vercel serverless functions are not involved in the live stream — only in the initial token exchange.</p>
   <ol class="step-list">
-    <li>Click the <strong>Connect Upstox</strong> button on the India watchlist page.</li>
-    <li>Authorize the application via the Upstox OAuth flow.</li>
-    <li>An access token is stored in <code>UPSTOX_ACCESS_TOKEN</code> environment variable.</li>
-    <li>The app fetches a WebSocket URL from <code>/api/upstox/ws-url</code> and connects.</li>
-    <li>Price updates arrive as protobuf-encoded messages, decoded by <code>lib/upstox-tick-data/</code>.</li>
+    <li><strong>Auth check</strong> — On component mount, <code>useUpstoxStream</code> calls <code>GET /api/upstox/status</code> to verify that a valid <code>UPSTOX_ACCESS_TOKEN</code> is configured server-side.</li>
+    <li><strong>WebSocket URL</strong> — When authenticated, <code>GET /api/upstox/ws-url</code> is called. The server uses the access token to request an authorized WSS URL from Upstox's API, then returns it to the client. This keeps the token off the browser.</li>
+    <li><strong>Binary stream</strong> — The browser opens a direct <code>WebSocket</code> to Upstox's servers. Messages arrive as <strong>protobuf-encoded binary frames</strong> (not JSON). The <code>lib/upstox-tick-data/proto.ts</code> decoder (lazy-loaded) parses each frame.</li>
+    <li><strong>Subscription</strong> — After connecting, the client sends a JSON subscription message (encoded as UTF-8 bytes) to subscribe to <code>DEFAULT_INSTRUMENT_KEYS</code> in <code>full</code> mode (LTP + bid/ask + volume).</li>
+    <li><strong>React state</strong> — Each decoded frame updates the <code>ticks</code> React state map (<code>instrumentKey → UpstoxTick</code>), instantly re-rendering the table row for that symbol.</li>
+    <li><strong>Price history</strong> — Each incoming LTP is appended to a rolling history buffer (max 300 points per symbol). This buffer powers the sparkline mini-charts in the Chart column.</li>
+    <li><strong>Alert check</strong> — On every tick update, <code>POST /api/alerts/check</code> is called with the new price to evaluate and trigger any matching ACTIVE price alerts.</li>
+    <li><strong>Auto-reconnect</strong> — If the WebSocket closes (network drop, Upstox server restart), the client automatically reconnects after 5 seconds. The subscription is re-sent on reconnect.</li>
   </ol>
+
+  <div class="callout info no-break">
+    <div class="callout-icon">ℹ️</div>
+    <div class="callout-body">
+      <strong>Works on Vercel Hobby Plan</strong>
+      <p>Because the WebSocket runs in the browser (not on a server), Vercel's serverless environment is not a limitation. The only server calls are the initial status check and WSS URL fetch — both are short-lived HTTP requests, not persistent connections.</p>
+    </div>
+  </div>
+
+  <h4>Login Page Live NSE Preview</h4>
+  <p>The login page (<code>/login</code>) shows a live NSE data panel on the left side — visible before a user signs in. This is served by the public endpoint <code>GET /api/public/india-preview</code> (no authentication required).</p>
+  <ul>
+    <li>Reads the last 2 daily candles per India instrument from TimescaleDB to compute price, change, and change %.</li>
+    <li>Returns the most recent <code>fetchedAt</code> timestamp — shown as "Updated 15 Apr 18:01 IST".</li>
+    <li>The login page polls this endpoint every <strong>5 minutes</strong> (<code>setInterval</code>) so data refreshes automatically after each cron run without a redeploy.</li>
+    <li>Cache-Control is set to <code>no-store</code> so Vercel's CDN does not cache stale data.</li>
+  </ul>
 
   <div class="callout warning no-break">
     <div class="callout-icon">⚠️</div>
@@ -1508,8 +1534,8 @@ GET https://quote.alltick.co/quote-stock-b-api/kline
       </tr>
       <tr>
         <td><code>writeCandles()</code></td>
-        <td><code>INSERT ... SELECT unnest($4::integer[]),... ON CONFLICT DO NOTHING</code></td>
-        <td>Bulk insert using PostgreSQL unnest() arrays; skips duplicates</td>
+        <td><code>INSERT ... ON CONFLICT DO UPDATE SET open=EXCLUDED.open, ...</code></td>
+        <td>Bulk upsert via unnest() arrays; updates existing candle on conflict so today's daily candle refreshes on every cron run</td>
       </tr>
     </tbody>
   </table>
@@ -1526,7 +1552,7 @@ CREATE TABLE "Candle" (
   low      NUMERIC NOT NULL,
   close    NUMERIC NOT NULL,
   volume   NUMERIC NOT NULL,
-  fetched_at TIMESTAMPTZ DEFAULT now(),
+  "fetchedAt" TIMESTAMPTZ DEFAULT now(),
   PRIMARY KEY (market, symbol, interval, time)
 );
 
@@ -1564,17 +1590,24 @@ SELECT add_compression_policy('"Candle"',
     <li>
       <strong>Set environment variables via CLI</strong>
       <pre style="margin-top:8px; font-size:8.5pt;">
-echo "postgres://..." | vercel env add DATABASE_URL production
-echo "postgres://..." | vercel env add DIRECT_DATABASE_URL production
-echo "your-jwt-secret" | vercel env add JWT_SECRET production
-echo "postgres://timescale..." | vercel env add TIMESCALE_URL production
-echo "upstox-token" | vercel env add UPSTOX_ACCESS_TOKEN production
-echo "alltick-token" | vercel env add NEXT_PUBLIC_ALLTICK_TOKEN production
+printf "postgres://timescale..." | vercel env add DATABASE_URL production
+printf "your-jwt-secret" | vercel env add JWT_SECRET production
+printf "your-cron-secret" | vercel env add CRON_SECRET production
+printf "upstox-token" | vercel env add UPSTOX_ACCESS_TOKEN production
+printf "0" | vercel env add NODE_TLS_REJECT_UNAUTHORIZED production
+printf "alltick-token" | vercel env add NEXT_PUBLIC_ALLTICK_TOKEN production
       </pre>
+      <em>Note: use <code>printf</code> (not <code>echo</code>) to avoid trailing newlines in the stored value.</em>
     </li>
     <li>
       <strong>Deploy to production</strong><br>
       <code>vercel --prod</code>
+    </li>
+    <li>
+      <strong>Set up GitHub Actions cron secrets</strong><br>
+      In the GitHub repository → Settings → Secrets and variables → Actions, add:<br>
+      <code>CRON_SECRET</code> — same value as the Vercel env var<br>
+      <code>VERCEL_URL</code> — your Vercel deployment URL (e.g. <code>marketsync-rho.vercel.app</code>)
     </li>
   </ol>
 
@@ -1589,14 +1622,36 @@ echo "alltick-token" | vercel env add NEXT_PUBLIC_ALLTICK_TOKEN production
   <table>
     <thead><tr><th>Variable</th><th>Environment</th><th>Source</th></tr></thead>
     <tbody>
-      <tr><td><code>DATABASE_URL</code></td><td>Production, Preview</td><td>Prisma Cloud dashboard</td></tr>
-      <tr><td><code>DIRECT_DATABASE_URL</code></td><td>Production, Preview</td><td>Prisma Cloud dashboard</td></tr>
+      <tr><td><code>DATABASE_URL</code></td><td>Production, Preview</td><td>TigerData Cloud connection string</td></tr>
       <tr><td><code>JWT_SECRET</code></td><td>Production, Preview</td><td>Self-generated (min 32 chars)</td></tr>
-      <tr><td><code>TIMESCALE_URL</code></td><td>Production</td><td>TigerData Cloud connection string</td></tr>
-      <tr><td><code>UPSTOX_ACCESS_TOKEN</code></td><td>Production</td><td>Upstox OAuth flow</td></tr>
+      <tr><td><code>CRON_SECRET</code></td><td>Production</td><td>Self-generated; also stored as GitHub Actions secret</td></tr>
+      <tr><td><code>UPSTOX_ACCESS_TOKEN</code></td><td>Production</td><td>Upstox OAuth flow (refresh daily)</td></tr>
+      <tr><td><code>NODE_TLS_REJECT_UNAUTHORIZED</code></td><td>Production</td><td>Set to <code>0</code> — bypasses Upstox TLS certificate</td></tr>
       <tr><td><code>NEXT_PUBLIC_ALLTICK_TOKEN</code></td><td>Production</td><td>AllTick API dashboard</td></tr>
     </tbody>
   </table>
+
+  <h3>GitHub Actions Cron Job</h3>
+  <p>Because Vercel Hobby plan does not support cron schedules more frequent than daily, candle prefetching is handled by a GitHub Actions scheduled workflow.</p>
+  <p>File: <code>.github/workflows/prefetch-candles.yml</code></p>
+  <table>
+    <thead><tr><th>Property</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Schedule</td><td>Every 5 minutes (<code>*/5 * * * *</code>)</td></tr>
+      <tr><td>Trigger</td><td>Also supports manual <code>workflow_dispatch</code></td></tr>
+      <tr><td>Action</td><td><code>curl -s -L</code> to <code>GET /api/cron/prefetch</code> with <code>Authorization: Bearer $CRON_SECRET</code></td></tr>
+      <tr><td>Timeout</td><td>4 minutes per run</td></tr>
+      <tr><td>Markets</td><td>India (1d via Upstox), US (1d via AllTick), HK (1d via AllTick)</td></tr>
+      <tr><td>Rate limit</td><td>5 second delay between AllTick API calls (free plan)</td></tr>
+    </tbody>
+  </table>
+  <div class="callout info no-break">
+    <div class="callout-icon">ℹ️</div>
+    <div class="callout-body">
+      <strong>GitHub Free Plan Cron Accuracy</strong>
+      <p>GitHub Actions free plan does not guarantee sub-hourly cron execution. Actual run frequency may be every 1–3 hours depending on GitHub's queue load. Use <code>workflow_dispatch</code> (manual trigger via GitHub API or UI) to force an immediate prefetch.</p>
+    </div>
+  </div>
 
   <div class="callout danger no-break">
     <div class="callout-icon">🔒</div>
@@ -1660,8 +1715,33 @@ echo "alltick-token" | vercel env add NEXT_PUBLIC_ALLTICK_TOKEN production
       </tr>
       <tr>
         <td>Candles not caching to TimescaleDB</td>
-        <td>TIMESCALE_URL is empty or invalid</td>
-        <td>Set valid TimescaleDB connection string. Run <code>scripts/init-timescale.sql</code> to create the Candle hypertable.</td>
+        <td>DATABASE_URL is empty or invalid</td>
+        <td>Verify DATABASE_URL points to TimescaleDB instance. Run <code>scripts/init-timescale.sql</code> to create the Candle hypertable if missing.</td>
+      </tr>
+      <tr>
+        <td>Cron job returns HTTP 401</td>
+        <td>CRON_SECRET mismatch or newline in stored value</td>
+        <td>Use <code>printf</code> (not <code>echo</code>) when setting Vercel env vars. Ensure GitHub Actions secret matches exactly.</td>
+      </tr>
+      <tr>
+        <td>Cron job returns HTTP 307 (redirect)</td>
+        <td>curl not following redirects</td>
+        <td>Ensure <code>curl -L</code> flag is used in the workflow to follow HTTP → HTTPS redirects.</td>
+      </tr>
+      <tr>
+        <td>AllTick returns HTTP 429 during cron</td>
+        <td>Rate limit exceeded on free plan</td>
+        <td>Cron uses 5-second delay between AllTick calls and daily-only intervals. If still hitting limits, increase delay in <code>/api/cron/prefetch/route.ts</code>.</td>
+      </tr>
+      <tr>
+        <td>Upstox SSL error during cron</td>
+        <td>Upstox API has self-signed TLS certificate</td>
+        <td>Ensure <code>NODE_TLS_REJECT_UNAUTHORIZED=0</code> is set in Vercel environment variables.</td>
+      </tr>
+      <tr>
+        <td>Login page shows stale NSE data</td>
+        <td>Previously caused by Vercel CDN caching the preview API</td>
+        <td>API now returns <code>Cache-Control: no-store</code>. Login page auto-polls every 5 min. Data updates within one cron cycle after market close.</td>
       </tr>
       <tr>
         <td>Order rejected with "Insufficient balance"</td>
@@ -1693,11 +1773,14 @@ echo "alltick-token" | vercel env add NEXT_PUBLIC_ALLTICK_TOKEN production
 
   <h3>Useful Commands</h3>
   <pre>
-<span class="comment"># Check database connection</span>
-curl http://localhost:3000/api/db-test
-
 <span class="comment"># Check Upstox token status</span>
 curl http://localhost:3000/api/upstox/status
+
+<span class="comment"># Manually trigger candle prefetch (local)</span>
+curl -H "Authorization: Bearer YOUR_CRON_SECRET" http://localhost:3000/api/cron/prefetch
+
+<span class="comment"># Check login page NSE preview data</span>
+curl http://localhost:3000/api/public/india-preview
 
 <span class="comment"># View Prisma DB in browser</span>
 npx prisma studio
@@ -1718,25 +1801,24 @@ vercel env ls
 vercel --prod
   </pre>
 
-  <h3>Pending Setup Items</h3>
-  <div class="callout warning no-break">
-    <div class="callout-icon">⚠️</div>
+  <h3>Production Status (April 2026)</h3>
+  <div class="callout success no-break">
+    <div class="callout-icon">✅</div>
     <div class="callout-body">
-      <strong>TimescaleDB Not Yet Configured</strong>
-      <p>As of April 2026, <code>TIMESCALE_URL</code> is set to <code>PLACEHOLDER</code> in Vercel. The app works without it (candles are fetched fresh each time) but caching is disabled. To enable:</p>
+      <strong>Single TimescaleDB — Fully Configured</strong>
+      <p>All app tables and the Candle hypertable are stored in a single TimescaleDB instance on TigerData Cloud. <code>DATABASE_URL</code> points to this instance in Vercel. Both Prisma ORM (app tables) and raw <code>pg</code> Pool (candles) connect via the same connection string.</p>
     </div>
   </div>
-  <ol class="step-list">
-    <li>Sign up at <strong>tigerdata.com</strong> and create a TimescaleDB service.</li>
-    <li>Copy the PostgreSQL connection string from the TigerData dashboard.</li>
-    <li>Run the initialization script: <code>psql "YOUR_TIMESCALE_URL" -f scripts/init-timescale.sql</code></li>
-    <li>Update Vercel: <code>vercel env rm TIMESCALE_URL production</code> then <code>echo "postgres://..." | vercel env add TIMESCALE_URL production</code></li>
-    <li>Update local <code>.env</code>: set <code>TIMESCALE_URL=&quot;postgres://...&quot;</code></li>
-    <li>Redeploy: <code>vercel --prod</code></li>
-  </ol>
+  <div class="callout info no-break">
+    <div class="callout-icon">ℹ️</div>
+    <div class="callout-body">
+      <strong>Upstox Token Refresh</strong>
+      <p>The Upstox access token expires daily. When it expires, the India watchlist will show "Connect" state. Re-authenticate via the <strong>Connect Upstox</strong> button, then update <code>UPSTOX_ACCESS_TOKEN</code> in Vercel and redeploy (or update via CLI: <code>printf "new-token" | vercel env add UPSTOX_ACCESS_TOKEN production</code>).</p>
+    </div>
+  </div>
 
   <div class="footer-note">
-    MarketSync Technical User Manual · Version 1.0.0 · April 2026 · Internal Documentation
+    MarketSync Technical User Manual · Version 1.1.0 · April 2026 · Internal Documentation
   </div>
 </div>
 
